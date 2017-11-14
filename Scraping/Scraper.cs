@@ -47,11 +47,35 @@ namespace Scraping
         }
 
         /// <summary>
+        /// Alternative way to get filters by name
+        /// </summary>
+        /// <param name="name">Name of the filter</param>
+        /// <returns></returns>
+        private IWebElement getClickableFilter(string name)
+        {
+            var filters = m_driver.FindElements(By.CssSelector("div.label.filterName"));
+            foreach(var f in filters)
+            {
+                var link = SafeFindElement(f, By.XPath("//a")).Text;
+                var notLink = SafeGetText(f);
+
+                if (name.Equals(link) || name.Equals(notLink))
+                {
+                    var tmp = SafeFindElement(f, By.XPath(".."));
+                    Log(tmp.ToString());
+                    return tmp;
+                }
+            }
+            return null;
+        }
+
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="filterName"></param>
         /// <returns></returns>
-        private IReadOnlyCollection<IWebElement> getClickableFilter(string filterName)
+        private IReadOnlyCollection<IWebElement> g(string filterName)
         {
             List<IWebElement> foundFilter = new List<IWebElement>();
             // wait for page to load
@@ -71,7 +95,7 @@ namespace Scraping
 
                     // get it from one of the link inside the div child
                     nameElement = SafeFindElement(filterItem, By.CssSelector(".label.filterName a"));
-                    textName = SafeGetAttribute(nameElement,"innerHTML");
+                    textName = SafeGetAttribute(nameElement, "innerHTML");
 
                     if (string.IsNullOrEmpty(textName))
                     {
@@ -90,7 +114,7 @@ namespace Scraping
                 previousName = textName;
                 Log(textName);
                 if (textName.Equals(filterName))
-                    if(!textName.Equals(previousName))
+                    if (!textName.Equals(previousName))
                         foundFilter.Add(f);
             }
 
@@ -145,10 +169,10 @@ namespace Scraping
         }
 
         /// <summary>
-        /// 
+        /// Gets attribute from an element managing any exception thrown
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="attributeName"></param>
+        /// <param name="element">Element to get the attribute from</param>
+        /// <param name="attributeName">Attribute name</param>
         /// <returns></returns>
         private string SafeGetAttribute(IWebElement element, string attributeName)
         {
@@ -163,6 +187,26 @@ namespace Scraping
             }
 
             return atttributeValue;
+        }
+
+        /// <summary>
+        /// Gets text from an element managing any exception thrown
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        private string SafeGetText(IWebElement element)
+        {
+            string text = "";
+            try
+            {
+                text = element.Text;
+            }
+            catch (Exception e)
+            {
+                Log(e.Message, true);
+            }
+
+            return text;
         }
 
         #endregion
